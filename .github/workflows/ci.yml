@@ -119,18 +119,6 @@ jobs:
             **View Details:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             **Test Report:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/report-${{ github.run_number }}/
 
-      - name: 📱 Slack Notification
-        if: always() && secrets.SLACK_WEBHOOK_URL
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ needs.test.result }}
-          text: |
-            🏦 XYZ Bank Tests ${{ needs.test.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
-            Build #${{ github.run_number }} | ${{ github.ref_name }} | ${{ github.actor }}
-            🔗 ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
       - name: 📋 Notification Status
         if: always()
         run: |
