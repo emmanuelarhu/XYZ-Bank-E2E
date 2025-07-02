@@ -1,0 +1,127 @@
+name: 🏦 XYZ Bank Test Automation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+jobs:
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: 📦 Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: 🌐 Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+
+      - name: 🧪 Run Tests
+        run: mvn clean test -Dheadless=true
+        env:
+          CHROME_OPTIONS: --headless --no-sandbox --disable-dev-shm-usage
+
+      - name: 📊 Generate Allure Report
+        if: always()
+        run: mvn allure:report
+
+      - name: 📋 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: |
+            target/allure-results/
+            target/site/allure-maven-plugin/
+            target/surefire-reports/
+
+      - name: 🚀 Deploy Report
+        if: always() && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: report-${{ github.run_number }}
+
+      - name: 📋 Test Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🏦 XYZ Bank Test Results
+          
+          **Build:** #${{ github.run_number }}  
+          **Branch:** ${{ github.ref_name }}  
+          **Status:** ${{ job.status }}  
+          **Author:** ${{ github.actor }}
+          
+          ### 🐛 Defects Under Test
+          | ID | Priority | Description |
+          |---|---|---|
+          | G2TML-398 | High | Name validation bypass |
+          | G2TML-400 | High | Special characters issue |
+          | G2TML-401 | High | Postal code validation |
+          | G2TML-402 | Medium | Reset button broken |
+          | G2TML-403 | Critical | Session security |
+          EOF
+          
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "**📊 Report:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/report-${{ github.run_number }}/" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  notify:
+    name: 📱 Notify
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+
+    steps:
+      - name: 📧 Email Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 🏦 XYZ Bank Tests ${{ needs.test.result == 'success' && '✅ PASSED' || '❌ FAILED' }} (#${{ github.run_number }})
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: XYZ Bank QA <${{ secrets.EMAIL_USERNAME }}>
+          body: |
+            ## Test Results: ${{ needs.test.result == 'success' && '✅ PASSED' || '❌ FAILED' }}
+            
+            **Build:** #${{ github.run_number }}
+            **Branch:** ${{ github.ref_name }}
+            **Author:** ${{ github.actor }}
+            
+            ### Defects Tested:
+            • G2TML-398: Name validation bypass
+            • G2TML-400: Special characters issue  
+            • G2TML-401: Postal code validation
+            • G2TML-402: Reset button broken
+            • G2TML-403: Session security (CRITICAL)
+            
+            **View Details:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Test Report:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/report-${{ github.run_number }}/
+
+      - name: 📋 Notification Status
+        if: always()
+        run: |
+          echo "## 📱 Notifications Sent" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Email: ${{ secrets.NOTIFICATION_EMAIL && 'Sent' || 'Not configured' }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Slack: ${{ secrets.SLACK_WEBHOOK_URL && 'Sent' || 'Not configured' }}" >> $GITHUB_STEP_SUMMARY

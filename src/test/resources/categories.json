@@ -1,0 +1,53 @@
+[
+  {
+    "name": "🐛 Product Defects",
+    "description": "Tests that validate known product defects and bugs",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": "DEFECT.*"
+  },
+  {
+    "name": "🔒 Security Vulnerabilities",
+    "description": "Critical security issues that need immediate attention",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*(SECURITY|security|Session|session).*"
+  },
+  {
+    "name": "⚠️ Validation Failures",
+    "description": "Input validation and form validation issues",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*(validation|Validation).*"
+  },
+  {
+    "name": "💰 Banking Operations",
+    "description": "Core banking functionality tests",
+    "matchedStatuses": ["passed", "failed"],
+    "messageRegex": ".*(deposit|withdrawal|balance|transaction).*"
+  },
+  {
+    "name": "👤 Customer Management",
+    "description": "Customer creation and management functionality",
+    "matchedStatuses": ["passed", "failed"],
+    "messageRegex": ".*(customer|Customer|login|Login).*"
+  },
+  {
+    "name": "🔧 Infrastructure Issues",
+    "description": "Test environment and infrastructure related failures",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*(timeout|Timeout|connection|Connection|driver|Driver).*"
+  },
+  {
+    "name": "✅ Passed Tests",
+    "description": "All tests that passed successfully",
+    "matchedStatuses": ["passed"]
+  },
+  {
+    "name": "⏭️ Skipped Tests",
+    "description": "Tests that were skipped during execution",
+    "matchedStatuses": ["skipped"]
+  },
+  {
+    "name": "❓ Unknown Issues",
+    "description": "Unclassified test failures that need investigation",
+    "matchedStatuses": ["failed", "broken"]
+  }
+]
