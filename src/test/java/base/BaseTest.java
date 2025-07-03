@@ -1,5 +1,6 @@
 package base;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Attachment;
 import org.junit.jupiter.api.AfterEach;
@@ -9,8 +10,6 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-
-import java.io.File;
 import java.time.Duration;
 
 public class BaseTest {
@@ -19,50 +18,31 @@ public class BaseTest {
 
     @BeforeEach
     public void setUp() {
-        System.out.println("🚀 Starting XYZ Bank test setup...");
-
-        // Get current working directory safely
-        String currentDir = System.getProperty("user.dir");
-        if (currentDir == null) {
-            currentDir = ".";
-        }
-
-        // Set ChromeDriver path
-        String chromeDriverPath = currentDir + File.separator +
-                "resources" + File.separator + "chromedriver.exe";
-
-        System.out.println("🔍 Looking for ChromeDriver at: " + chromeDriverPath);
-
-        // Check if ChromeDriver exists locally, otherwise use system PATH (for CI)
-        File chromeDriverFile = new File(chromeDriverPath);
-        if (chromeDriverFile.exists()) {
-            System.setProperty("webdriver.chrome.driver", chromeDriverPath);
-            System.out.println("✅ Using local ChromeDriver");
-        } else if (System.getenv("CI") != null) {
-            System.out.println("🤖 CI environment detected - using system ChromeDriver");
-        } else {
-            System.err.println("❌ ChromeDriver not found at: " + chromeDriverPath);
-            throw new RuntimeException("ChromeDriver executable not found at: " + chromeDriverPath);
-        }
-
-        // Configure Chrome options
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--window-size=1366,768");
-        options.addArguments("--remote-allow-origins=*");
-//        options.addArguments("--disable-blink-features=AutomationControlled");
-//        options.addExperimentalOption("useAutomationExtension", false);
-//        options.addExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
-
-        // Add headless mode for CI environment
-        String headless = System.getProperty("headless");
-        if ("true".equals(headless) || System.getenv("CI") != null) {
-            options.addArguments("--headless");
-            System.out.println("🤖 Running in headless mode (CI environment)");
-        }
+        System.out.println("🚀 Starting XYZ Bank test setup with WebDriverManager...");
 
         try {
+            // Setup Chrome driver with specific version using WebDriverManager
+            WebDriverManager.chromedriver()
+                    .driverVersion("137.0.7151.122")
+                    .setup();
+
+            System.out.println("✅ WebDriverManager setup completed for Chrome 137.0.7151.122");
+
+            // Configure Chrome options
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--window-size=1366,768");
+            options.addArguments("--remote-allow-origins=*");
+            options.addArguments("--disable-blink-features=AutomationControlled");
+
+            // Add headless mode for CI environment
+            String headless = System.getProperty("headless");
+            if ("true".equals(headless) || System.getenv("CI") != null) {
+                options.addArguments("--headless");
+                System.out.println("🤖 Running in headless mode (CI environment)");
+            }
+
             // Initialize driver
             driver = new ChromeDriver(options);
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
@@ -76,7 +56,8 @@ public class BaseTest {
             Allure.addAttachment("Environment", "text/plain",
                     "Browser: Chrome " + chromeVersion + "\n" +
                             "Base URL: " + BASE_URL + "\n" +
-                            "Headless: " + ("true".equals(headless) || System.getenv("CI") != null));
+                            "Headless: " + ("true".equals(headless) || System.getenv("CI") != null) + "\n" +
+                            "WebDriverManager: Enabled with Chrome 137.0.7151.122");
 
         } catch (Exception e) {
             System.err.println("❌ Failed to initialize Chrome driver: " + e.getMessage());
@@ -113,7 +94,7 @@ public class BaseTest {
         }
     }
 
-    @Attachment(value = "Screenshot", type = "image/png")
+    @Attachment(value = "Screenshot: {screenshotName}", type = "image/png")
     public byte[] takeScreenshot(String screenshotName) {
         try {
             System.out.println("📸 Taking screenshot: " + screenshotName);
