@@ -14,8 +14,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <allure.version>2.24.0</allure.version>
         <aspectj.version>1.9.20.1</aspectj.version>
-        <!-- WebDriverManager Chrome version -->
-        <chrome.driver.version>137.0.7151.122</chrome.driver.version>
+
+
     </properties>
 
     <!-- Add allure-bom to dependency management to ensure correct versions of all the dependencies are used -->
@@ -26,6 +26,7 @@
                 <artifactId>allure-bom</artifactId>
                 <version>${allure.version}</version>
                 <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -38,18 +39,12 @@
             <version>4.16.1</version>
         </dependency>
 
-        <!-- WebDriverManager for automatic driver management -->
-        <dependency>
-            <groupId>io.github.bonigarcia</groupId>
-            <artifactId>webdrivermanager</artifactId>
-            <version>6.1.0</version>
-        </dependency>
-
         <!-- JUnit 5 -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.0</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Allure JUnit 5 Integration -->
@@ -57,14 +52,21 @@
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-junit5</artifactId>
             <version>2.25.0</version>
+            <scope>test</scope>
         </dependency>
 
-        <!-- AspectJ Runtime - REQUIRED for @Step annotations -->
         <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${aspectj.version}</version>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.6.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -80,47 +82,24 @@
                 </configuration>
             </plugin>
 
-            <!-- Surefire plugin for running tests with AspectJ agent -->
+            <!-- Surefire plugin for running tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
                     <testFailureIgnore>false</testFailureIgnore>
-                    <!-- AspectJ agent configuration for @Step annotations -->
-                    <argLine>
-                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
-                    </argLine>
                     <systemProperties>
                         <property>
-                            <name>junit.jupiter.extensions.autodetection.enabled</name>
+                            <n>junit.jupiter.extensions.autodetection.enabled</n>
                             <value>true</value>
                         </property>
                         <property>
-                            <name>allure.results.directory</name>
+                            <n>allure.results.directory</n>
                             <value>${project.build.directory}/allure-results</value>
                         </property>
-                        <!-- WebDriverManager Chrome version -->
-                        <property>
-                            <name>wdm.chromeDriverVersion</name>
-                            <value>${chrome.driver.version}</value>
-                        </property>
                     </systemProperties>
-                    <properties>
-                        <property>
-                            <name>listener</name>
-                            <value>io.qameta.allure.junit5.AllureJunit5</value>
-                        </property>
-                    </properties>
                 </configuration>
-                <dependencies>
-                    <!-- AspectJ Weaver - REQUIRED for @Step annotations -->
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjweaver</artifactId>
-                        <version>1.9.24</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
             <!-- Allure Maven Plugin -->
@@ -132,6 +111,8 @@
                     <reportVersion>2.25.0</reportVersion>
                 </configuration>
             </plugin>
+
+
         </plugins>
     </build>
 </project>
