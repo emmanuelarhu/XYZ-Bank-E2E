@@ -4,7 +4,7 @@ name: XYZ Bank Test Automation with Allure
 # When to run this workflow
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, tester ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
